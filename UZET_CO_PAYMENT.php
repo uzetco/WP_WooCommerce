@@ -196,7 +196,7 @@ $Email_Admin        = $this->get_option('email_admin');
 // get info's customer
 
 $Total              = $customer->get_total();
-$Product_Item       = $customer->get_title();
+$Product_Item       = 'Customer';//$customer->get_title();
 $customerEmail      = $customer->get_billing_email();
 $customer_givenName = $customer->get_billing_first_name();
 $customer_surname   = $customer->get_billing_last_name();
