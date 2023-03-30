@@ -180,12 +180,10 @@ return $this->Create_UZET_Invoice_URL($order_id);
 private function Create_UZET_Invoice_URL($order_id){
 
 $customer = new WC_Order($order_id);
-
 $redirect_url = $customer->get_checkout_order_received_url();
 if (version_compare(WOOCOMMERCE_VERSION, '2.0.0', '>=')) {
 $redirect_url = add_query_arg('wc-api', strtolower(get_class($this)), $redirect_url);
 }
-
 
 // get info's from settings admin
 $Publishable_Key    = $this->get_option('Publishable_Key');
@@ -196,7 +194,7 @@ $Email_Admin        = $this->get_option('email_admin');
 // get info's customer
 
 $Total              = $customer->get_total();
-$Product_Item       = 'Customer';//$customer->get_title();
+$Product_Item       = 'Custmer';//$customer->get_title();
 $customerEmail      = $customer->get_billing_email();
 $customer_givenName = $customer->get_billing_first_name();
 $customer_surname   = $customer->get_billing_last_name();
@@ -207,6 +205,7 @@ $billing_city       = $customer->get_billing_city();
 $billing_state      = $customer->get_billing_state();
 $billing_postcode   = $customer->get_billing_postcode();
 $billing_country    = $customer->get_billing_country();
+$Product_Item = "Customer";
 
 
 
@@ -235,6 +234,7 @@ return $json->url;
 return false;
 }
 }
+
 
 
 
