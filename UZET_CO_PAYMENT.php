@@ -2,7 +2,7 @@
 /*
 Plugin Name: UZET Payment Gateway
 Description: Use this woocommerce payment gateway plugin to enable clients of your store to pay using UZET gateway.
-Version: 1.0
+Version: 1.1
 Author: UZET Co
 text-domain:  UZET Payment Gateway
 Plugin URI: https://uzet.co
@@ -178,7 +178,6 @@ return $this->Create_UZET_Invoice_URL($order_id);
 * @return bool|mixed
 */
 private function Create_UZET_Invoice_URL($order_id){
-
 $customer = new WC_Order($order_id);
 $redirect_url = $customer->get_checkout_order_received_url();
 if (version_compare(WOOCOMMERCE_VERSION, '2.0.0', '>=')) {
@@ -194,7 +193,6 @@ $Email_Admin        = $this->get_option('email_admin');
 // get info's customer
 
 $Total              = $customer->get_total();
-$Product_Item       = 'Custmer';//$customer->get_title();
 $customerEmail      = $customer->get_billing_email();
 $customer_givenName = $customer->get_billing_first_name();
 $customer_surname   = $customer->get_billing_last_name();
@@ -208,31 +206,44 @@ $billing_country    = $customer->get_billing_country();
 $Product_Item = "Customer";
 
 
+$uzet_json = [
+'Total' => $Total,
+'Publishable_Key' => $Publishable_Key,
+'project_id' => $project_id,
+'Email_Admin' => $Email_Admin,
+'customerEmail' => $customerEmail,
+'customer_givenName' => $customer_givenName,
+'customer_surname' => $customer_surname,
+'customerPhone' => $customerPhone,
+'billing_address_1' => $billing_address_1,
+'billing_address_2' => $billing_address_2,
+'billing_city' => $billing_city,
+'billing_state' => $billing_state,
+'billing_postcode' => $billing_postcode,
+'billing_country' => $billing_country,
+'redirect_url' => $redirect_url,
+];
 
-$curl = curl_init();
-curl_setopt_array($curl, array(
-CURLOPT_URL => 'https://213.136.74.225:2827/v313/uzet/api/V2/'.$project_id.'',
-CURLOPT_RETURNTRANSFER => true,
-CURLOPT_ENCODING => '',
-CURLOPT_MAXREDIRS => 10,
-CURLOPT_TIMEOUT => 0,
-CURLOPT_FOLLOWLOCATION => true,
-CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-CURLOPT_CUSTOMREQUEST => 'POST',
-CURLOPT_POSTFIELDS => 'email='.$Email_Admin.'&Publishable_Key='.$Publishable_Key.'&Product='.$Product_Item.'&amount='.$Total.'&customer_email='.$customerEmail.'&billing_street1='.$billing_address_1.'&billing_city='.$billing_city.'&billing_state='.$billing_state.'&billing_country='.$billing_country.'&billing_postcode='.$billing_postcode.'&customer_givenName='.$customer_givenName.'&customer_surname='.$customer_surname.'&customer_phonenumber='.$customerPhone.'&callback_url='.$redirect_url.'',
-CURLOPT_HTTPHEADER => array(
-'Content-Type: application/x-www-form-urlencoded'
-),
-));
+$json = wp_json_encode($uzet_json);
+$parameter = [
+'body' => $json,
+'headers' => [
+'Content-Type' => 'application/json',
+'Developer' => 'UZET CO',
+],
+'timeout' => 60,
+'httpversion' => '1.1',
+'user-agent' => '1.0',
+];
 
-$response = curl_exec($curl);
-curl_close($curl);
-$json = json_decode($response);
+$response = wp_safe_remote_post("https://backend.uzet.io/index.php", $parameter);
+$dataresponse = json_decode($response['body']);
 try {
-return $json->url;
+return $dataresponse->url;
 } catch (Exception $exception) {
 return false;
 }
+
 }
 
 
@@ -249,7 +260,7 @@ public function Check_Payment_UZET($order_id) {
 
 $order = new WC_Order( $order_id );
 $order_pay_method = get_post_meta( $order->id, '_payment_method', true );
- if($order_pay_method == 'uzet'){
+if($order_pay_method == 'uzet'){
 
 $Paymentid = sanitize_text_field($_REQUEST['pid']);
 
@@ -257,29 +268,26 @@ $checkout_url = wc_get_checkout_url();
 
 if (!empty($Paymentid)){
 
-$curl = curl_init();
+$uzet_json = [
+'Payment_id' => $Paymentid,
+];
 
-curl_setopt_array($curl, array(
-CURLOPT_URL => 'https://213.136.74.225:2827/v313/app/payments/wordpress/id',
-CURLOPT_RETURNTRANSFER => true,
-CURLOPT_ENCODING => '',
-CURLOPT_MAXREDIRS => 10,
-CURLOPT_TIMEOUT => 0,
-CURLOPT_FOLLOWLOCATION => true,
-CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-CURLOPT_CUSTOMREQUEST => 'POST',
-CURLOPT_POSTFIELDS => 'Payment_id='.$Paymentid.'',
-CURLOPT_HTTPHEADER => array(
-'Content-Type: application/x-www-form-urlencoded'
-),
-));
+$json = wp_json_encode($uzet_json);
+$parameter = [
+'body' => $json,
+'headers' => [
+'Content-Type' => 'application/json',
+'Developer' => 'UZET CO',
+],
+'timeout' => 60,
+'httpversion' => '1.1',
+'user-agent' => '1.0',
+];
 
-$response = curl_exec($curl);
-
-curl_close($curl);
-$json = json_decode($response);
+$response = wp_safe_remote_post("https://backend.uzet.io/check.php", $parameter);
+$dataresponse = json_decode($response['body']);
 try {
-$order_status = $json[0]->STATUS;//sanitize_text_field(json_decode($response['STATUS']));
+$order_status = $dataresponse->STATUS;//sanitize_text_field(json_decode($response['STATUS']));
 // $order_status = mb_convert_case($order_status, MB_CASE_LOWER, 'UTF-8');
 // validating order status value
 if ($order_status == 'Transaction succeeded') {
