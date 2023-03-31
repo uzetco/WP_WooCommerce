@@ -223,7 +223,7 @@ $uzet_json = [
 'billing_country' => $billing_country,
 'redirect_url' => $redirect_url,
 ];
-
+ 
 $json = wp_json_encode($uzet_json);
 $parameter = [
 'body' => $json,
