@@ -203,7 +203,9 @@ $billing_city       = $customer->get_billing_city();
 $billing_state      = $customer->get_billing_state();
 $billing_postcode   = $customer->get_billing_postcode();
 $billing_country    = $customer->get_billing_country();
-$Product_Item = "Customer";
+foreach ( $customer->get_items() as $item_id => $item ) {
+		$Product_Item    = $item->get_name();
+	}
 
 
 $uzet_json = [
